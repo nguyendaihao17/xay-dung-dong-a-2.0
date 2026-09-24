@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Image as ImageIcon, X, Check, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Image as ImageIcon, X, Check, Loader2, Upload } from "lucide-react";
 
 type MediaItem = {
   id: string;
@@ -22,7 +22,9 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [selected, setSelected] = useState<string>(initialUrl || "");
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -38,8 +40,30 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
   }, []);
 
   useEffect(() => {
-    if (open && items.length === 0) load();
-  }, [open, items.length, load]);
+    if (open) load();
+  }, [open, load]);
+
+  async function handleUpload(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const form = new FormData();
+        form.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: form });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Upload thất bại");
+        }
+      }
+      await load();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Upload thất bại");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
 
   return (
     <div>
@@ -88,9 +112,28 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
           <div className="flex max-h-[85vh] w-full max-w-4xl flex-col bg-white">
             <div className="flex items-center justify-between border-b border-neutral-200 p-4">
               <h3 className="font-display text-lg uppercase text-navy-900">Chọn ảnh</h3>
-              <button type="button" onClick={() => setOpen(false)} className="text-neutral-500">
-                <X size={20} />
-              </button>
+              <div className="flex items-center gap-3">
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => handleUpload(e.target.files)}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  className="inline-flex items-center gap-2 bg-navy-900 px-4 py-2 text-xs font-medium uppercase tracking-wider text-white hover:bg-navy-800 disabled:opacity-50"
+                >
+                  {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                  {uploading ? "Đang tải..." : "Tải ảnh mới"}
+                </button>
+                <button type="button" onClick={() => setOpen(false)} className="text-neutral-500">
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
@@ -100,7 +143,7 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
                 </div>
               ) : items.length === 0 ? (
                 <div className="py-20 text-center text-sm text-neutral-500">
-                  Chưa có ảnh. Vào "Thư viện" để tải ảnh lên trước.
+                  Chưa có ảnh. Nhấn "Tải ảnh mới" ở trên để thêm.
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">

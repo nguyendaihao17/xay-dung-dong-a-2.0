@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { PageHero } from "@/components/site/page-hero";
@@ -34,12 +35,6 @@ export default async function ArticleDetailPage({ params }: Props) {
   const article = await articleRepository.bySlug(slug).catch(() => null);
   if (!article) notFound();
 
-  const html = article.content
-    ? typeof article.content === "string"
-      ? article.content
-      : JSON.stringify(article.content)
-    : "";
-
   return (
     <>
       <JsonLd
@@ -66,13 +61,28 @@ export default async function ArticleDetailPage({ params }: Props) {
         crumbs={[{ label: "Tin tức", href: "/tin-tuc" }, { label: article.title }]}
       />
 
+      {article.coverImage?.url && (
+        <Container className="pt-12">
+          <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-100">
+            <Image
+              src={article.coverImage.url}
+              alt={article.title}
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+          </div>
+        </Container>
+      )}
+
       <Section>
         <Container>
           <div className="mx-auto max-w-3xl">
             <div className="mb-8 text-sm text-neutral-500">
               <time>{formatDate(article.publishedAt || article.createdAt)}</time>
             </div>
-            {html ? <RichContent html={html} /> : <p className="text-neutral-500">Nội dung đang được cập nhật.</p>}
+            <RichContent content={article.content as unknown} />
           </div>
         </Container>
       </Section>

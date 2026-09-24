@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { PageHero } from "@/components/site/page-hero";
@@ -40,12 +41,6 @@ export default async function ProjectDetailPage({ params }: Props) {
     { label: "Phạm vi", value: project.scope },
   ].filter((m) => m.value);
 
-  const html = project.content
-    ? typeof project.content === "string"
-      ? project.content
-      : JSON.stringify(project.content)
-    : "";
-
   return (
     <>
       <JsonLd
@@ -63,11 +58,26 @@ export default async function ProjectDetailPage({ params }: Props) {
         crumbs={[{ label: "Dự án", href: "/du-an" }, { label: project.title }]}
       />
 
+      {project.coverImage?.url && (
+        <Container className="pt-12">
+          <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-100">
+            <Image
+              src={project.coverImage.url}
+              alt={project.title}
+              fill
+              sizes="100vw"
+              className="object-cover"
+              priority
+            />
+          </div>
+        </Container>
+      )}
+
       <Section>
         <Container>
           <div className="grid gap-16 lg:grid-cols-12">
             <div className="lg:col-span-8">
-              {html ? <RichContent html={html} /> : <p className="text-neutral-500">Nội dung đang được cập nhật.</p>}
+              <RichContent content={project.content as unknown} />
             </div>
             {meta.length > 0 && (
               <aside className="lg:col-span-4">
@@ -87,6 +97,25 @@ export default async function ProjectDetailPage({ params }: Props) {
               </aside>
             )}
           </div>
+
+          {project.gallery && project.gallery.length > 0 && (
+            <div className="mt-20">
+              <h2 className="font-display text-2xl uppercase text-navy-900">Thư viện ảnh</h2>
+              <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {project.gallery.map((g) => (
+                  <div key={g.id} className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+                    <Image
+                      src={g.media.url}
+                      alt={g.caption || project.title}
+                      fill
+                      sizes="(min-width: 1024px) 33vw, 100vw"
+                      className="object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Container>
       </Section>
 

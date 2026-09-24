@@ -16,7 +16,15 @@ type Initial = {
   published?: boolean;
   featured?: boolean;
   coverImage?: { url: string } | null;
+  content?: unknown;
 };
+
+function pickContent(v: unknown): string {
+  if (!v) return "";
+  if (typeof v === "string") return v;
+  if (typeof v === "object" && v !== null && "html" in v) return String((v as { html: unknown }).html || "");
+  return "";
+}
 
 export function ProjectForm({
   action,
@@ -41,6 +49,16 @@ export function ProjectForm({
       <div>
         <Label htmlFor="shortDescription">Mô tả ngắn</Label>
         <Textarea id="shortDescription" name="shortDescription" rows={3} defaultValue={initial.shortDescription || ""} className="mt-2" />
+      </div>
+      <div>
+        <Label htmlFor="content">Nội dung chi tiết (HTML: &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;strong&gt;...)</Label>
+        <Textarea
+          id="content"
+          name="content"
+          rows={10}
+          defaultValue={pickContent(initial.content)}
+          className="mt-2 font-mono text-sm"
+        />
       </div>
       <div className="grid gap-6 sm:grid-cols-2">
         <div>

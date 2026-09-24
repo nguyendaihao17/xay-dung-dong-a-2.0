@@ -6,34 +6,64 @@ import { requireRole } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { slugifyVietnamese } from "@/lib/utils";
 
-async function resolveMediaIdByUrl(url: string | undefined | null): Promise<string | null> {
-  if (!url) return null;
+// ─── Helpers ────────────────────────────────────────────────
+async function uniqueSlug(
+  base: string,
+  model: "project" | "article" | "service" | "career",
+  excludeId?: string
+): Promise<string> {
+  const clean = base.trim() || "untitled";
+  let candidate = clean;
+  let n = 1;
+
+  while (true) {
+    const where: Record<string, unknown> = { slug: candidate };
+    if (excludeId) where.NOT = { id: excludeId };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const existing = await (prisma as any)[model].findFirst({ where });
+    if (!existing) return candidate;
+    n++;
+    candidate = `${clean}-${n}`;
+  }
+}
+
+async function mediaIdByUrl(url: string | null | undefined): Promise<string | null> {
+  if (!url || !url.trim()) return null;
   const media = await prisma.media.findFirst({ where: { url } });
   return media?.id ?? null;
 }
 
-// ─── PROJECTS ───────────────────────────────────────────────
+function htmlOrUndefined(v: FormDataEntryValue | null): { html: string } | undefined {
+  const s = String(v || "").trim();
+  return s ? { html: s } : undefined;
+}
+
+// ─── PROJECTS ────────────────────────────────────────────────
 export async function createProjectAction(formData: FormData) {
   await requireRole("ADMIN", "EDITOR");
-  const title = String(formData.get("title") || "");
-  const slug = String(formData.get("slug") || "") || slugifyVietnamese(title);
-  const coverUrl = String(formData.get("coverImageUrl") || "");
+  const title = String(formData.get("title") || "").trim();
+  const rawSlug = String(formData.get("slug") || "").trim();
+  const slug = await uniqueSlug(rawSlug || slugifyVietnamese(title), "project");
 
   await prisma.project.create({
     data: {
       title,
       slug,
-      shortDescription: String(formData.get("shortDescription") || "") || null,
-      location: String(formData.get("location") || "") || null,
-      client: String(formData.get("client") || "") || null,
+      shortDescription: String(formData.get("shortDescription") || "").trim() || null,
+      location: String(formData.get("location") || "").trim() || null,
+      client: String(formData.get("client") || "").trim() || null,
       year: formData.get("year") ? Number(formData.get("year")) : null,
-      scope: String(formData.get("scope") || "") || null,
-      status: (String(formData.get("status") || "COMPLETED") as never),
-      coverImageId: await resolveMediaIdByUrl(coverUrl),
+      scope: String(formData.get("scope") || "").trim() || null,
+      status: String(formData.get("status") || "COMPLETED") as never,
+      coverImageId: await mediaIdByUrl(String(formData.get("coverImageUrl") || "")),
+      content: htmlOrUndefined(formData.get("content")),
       published: formData.get("published") === "on",
       featured: formData.get("featured") === "on",
+      publishedAt: formData.get("published") === "on" ? new Date() : null,
     },
   });
+
   revalidatePath("/admin/projects");
   revalidatePath("/du-an");
   revalidatePath("/");
@@ -42,28 +72,31 @@ export async function createProjectAction(formData: FormData) {
 
 export async function updateProjectAction(id: string, formData: FormData) {
   await requireRole("ADMIN", "EDITOR");
-  const title = String(formData.get("title") || "");
-  const slug = String(formData.get("slug") || "") || slugifyVietnamese(title);
-  const coverUrl = String(formData.get("coverImageUrl") || "");
+  const title = String(formData.get("title") || "").trim();
+  const rawSlug = String(formData.get("slug") || "").trim();
+  const slug = await uniqueSlug(rawSlug || slugifyVietnamese(title), "project", id);
 
   await prisma.project.update({
     where: { id },
     data: {
       title,
       slug,
-      shortDescription: String(formData.get("shortDescription") || "") || null,
-      location: String(formData.get("location") || "") || null,
-      client: String(formData.get("client") || "") || null,
+      shortDescription: String(formData.get("shortDescription") || "").trim() || null,
+      location: String(formData.get("location") || "").trim() || null,
+      client: String(formData.get("client") || "").trim() || null,
       year: formData.get("year") ? Number(formData.get("year")) : null,
-      scope: String(formData.get("scope") || "") || null,
-      status: (String(formData.get("status") || "COMPLETED") as never),
-      coverImageId: await resolveMediaIdByUrl(coverUrl),
+      scope: String(formData.get("scope") || "").trim() || null,
+      status: String(formData.get("status") || "COMPLETED") as never,
+      coverImageId: await mediaIdByUrl(String(formData.get("coverImageUrl") || "")),
+      content: htmlOrUndefined(formData.get("content")),
       published: formData.get("published") === "on",
       featured: formData.get("featured") === "on",
     },
   });
+
   revalidatePath("/admin/projects");
   revalidatePath("/du-an");
+  revalidatePath(`/du-an/${slug}`);
   revalidatePath("/");
   redirect("/admin/projects");
 }
@@ -76,26 +109,27 @@ export async function deleteProjectAction(id: string) {
   revalidatePath("/");
 }
 
-// ─── ARTICLES ───────────────────────────────────────────────
+// ─── ARTICLES ────────────────────────────────────────────────
 export async function createArticleAction(formData: FormData) {
   await requireRole("ADMIN", "EDITOR");
-  const title = String(formData.get("title") || "");
-  const slug = String(formData.get("slug") || "") || slugifyVietnamese(title);
+  const title = String(formData.get("title") || "").trim();
+  const rawSlug = String(formData.get("slug") || "").trim();
+  const slug = await uniqueSlug(rawSlug || slugifyVietnamese(title), "article");
   const published = formData.get("published") === "on";
-  const coverUrl = String(formData.get("coverImageUrl") || "");
 
   await prisma.article.create({
     data: {
       title,
       slug,
-      excerpt: String(formData.get("excerpt") || "") || null,
-      content: (function(){ const v = String(formData.get("content") || "").trim(); return v ? { html: v } : undefined; })(),
-      coverImageId: await resolveMediaIdByUrl(coverUrl),
+      excerpt: String(formData.get("excerpt") || "").trim() || null,
+      content: htmlOrUndefined(formData.get("content")),
+      coverImageId: await mediaIdByUrl(String(formData.get("coverImageUrl") || "")),
       published,
       publishedAt: published ? new Date() : null,
       featured: formData.get("featured") === "on",
     },
   });
+
   revalidatePath("/admin/articles");
   revalidatePath("/tin-tuc");
   revalidatePath("/");
@@ -104,27 +138,30 @@ export async function createArticleAction(formData: FormData) {
 
 export async function updateArticleAction(id: string, formData: FormData) {
   await requireRole("ADMIN", "EDITOR");
-  const title = String(formData.get("title") || "");
-  const slug = String(formData.get("slug") || "") || slugifyVietnamese(title);
+  const title = String(formData.get("title") || "").trim();
+  const rawSlug = String(formData.get("slug") || "").trim();
+  const slug = await uniqueSlug(rawSlug || slugifyVietnamese(title), "article", id);
   const published = formData.get("published") === "on";
-  const coverUrl = String(formData.get("coverImageUrl") || "");
 
   const existing = await prisma.article.findUnique({ where: { id } });
+
   await prisma.article.update({
     where: { id },
     data: {
       title,
       slug,
-      excerpt: String(formData.get("excerpt") || "") || null,
-      content: (function(){ const v = String(formData.get("content") || "").trim(); return v ? { html: v } : undefined; })(),
-      coverImageId: await resolveMediaIdByUrl(coverUrl),
+      excerpt: String(formData.get("excerpt") || "").trim() || null,
+      content: htmlOrUndefined(formData.get("content")),
+      coverImageId: await mediaIdByUrl(String(formData.get("coverImageUrl") || "")),
       published,
       publishedAt: published && !existing?.publishedAt ? new Date() : existing?.publishedAt,
       featured: formData.get("featured") === "on",
     },
   });
+
   revalidatePath("/admin/articles");
   revalidatePath("/tin-tuc");
+  revalidatePath(`/tin-tuc/${slug}`);
   revalidatePath("/");
   redirect("/admin/articles");
 }
@@ -137,24 +174,25 @@ export async function deleteArticleAction(id: string) {
   revalidatePath("/");
 }
 
-// ─── SERVICES ───────────────────────────────────────────────
+// ─── SERVICES ────────────────────────────────────────────────
 export async function createServiceAction(formData: FormData) {
   await requireRole("ADMIN", "EDITOR");
-  const title = String(formData.get("title") || "");
-  const slug = String(formData.get("slug") || "") || slugifyVietnamese(title);
-  const coverUrl = String(formData.get("coverImageUrl") || "");
+  const title = String(formData.get("title") || "").trim();
+  const rawSlug = String(formData.get("slug") || "").trim();
+  const slug = await uniqueSlug(rawSlug || slugifyVietnamese(title), "service");
 
   await prisma.service.create({
     data: {
       title,
       slug,
-      shortDescription: String(formData.get("shortDescription") || "") || null,
-      content: (function(){ const v = String(formData.get("content") || "").trim(); return v ? { html: v } : undefined; })(),
-      coverImageId: await resolveMediaIdByUrl(coverUrl),
+      shortDescription: String(formData.get("shortDescription") || "").trim() || null,
+      content: htmlOrUndefined(formData.get("content")),
+      coverImageId: await mediaIdByUrl(String(formData.get("coverImageUrl") || "")),
       published: formData.get("published") === "on",
       featured: formData.get("featured") === "on",
     },
   });
+
   revalidatePath("/admin/services");
   revalidatePath("/dich-vu");
   revalidatePath("/");
@@ -163,24 +201,26 @@ export async function createServiceAction(formData: FormData) {
 
 export async function updateServiceAction(id: string, formData: FormData) {
   await requireRole("ADMIN", "EDITOR");
-  const title = String(formData.get("title") || "");
-  const slug = String(formData.get("slug") || "") || slugifyVietnamese(title);
-  const coverUrl = String(formData.get("coverImageUrl") || "");
+  const title = String(formData.get("title") || "").trim();
+  const rawSlug = String(formData.get("slug") || "").trim();
+  const slug = await uniqueSlug(rawSlug || slugifyVietnamese(title), "service", id);
 
   await prisma.service.update({
     where: { id },
     data: {
       title,
       slug,
-      shortDescription: String(formData.get("shortDescription") || "") || null,
-      content: (function(){ const v = String(formData.get("content") || "").trim(); return v ? { html: v } : undefined; })(),
-      coverImageId: await resolveMediaIdByUrl(coverUrl),
+      shortDescription: String(formData.get("shortDescription") || "").trim() || null,
+      content: htmlOrUndefined(formData.get("content")),
+      coverImageId: await mediaIdByUrl(String(formData.get("coverImageUrl") || "")),
       published: formData.get("published") === "on",
       featured: formData.get("featured") === "on",
     },
   });
+
   revalidatePath("/admin/services");
   revalidatePath("/dich-vu");
+  revalidatePath(`/dich-vu/${slug}`);
   revalidatePath("/");
   redirect("/admin/services");
 }
@@ -193,25 +233,27 @@ export async function deleteServiceAction(id: string) {
   revalidatePath("/");
 }
 
-// ─── CAREERS ────────────────────────────────────────────────
+// ─── CAREERS ─────────────────────────────────────────────────
 export async function createCareerAction(formData: FormData) {
   await requireRole("ADMIN", "EDITOR");
-  const title = String(formData.get("title") || "");
-  const slug = String(formData.get("slug") || "") || slugifyVietnamese(title);
+  const title = String(formData.get("title") || "").trim();
+  const rawSlug = String(formData.get("slug") || "").trim();
+  const slug = await uniqueSlug(rawSlug || slugifyVietnamese(title), "career");
 
   await prisma.career.create({
     data: {
       title,
       slug,
-      department: String(formData.get("department") || "") || null,
-      location: String(formData.get("location") || "") || null,
-      salaryRange: String(formData.get("salaryRange") || "") || null,
-      description: (function(){ const v = String(formData.get("description") || "").trim(); return v ? { html: v } : undefined; })(),
-      requirements: (function(){ const v = String(formData.get("requirements") || "").trim(); return v ? { html: v } : undefined; })(),
-      benefits: (function(){ const v = String(formData.get("benefits") || "").trim(); return v ? { html: v } : undefined; })(),
+      department: String(formData.get("department") || "").trim() || null,
+      location: String(formData.get("location") || "").trim() || null,
+      salaryRange: String(formData.get("salaryRange") || "").trim() || null,
+      description: htmlOrUndefined(formData.get("description")),
+      requirements: htmlOrUndefined(formData.get("requirements")),
+      benefits: htmlOrUndefined(formData.get("benefits")),
       published: formData.get("published") === "on",
     },
   });
+
   revalidatePath("/admin/careers");
   revalidatePath("/tuyen-dung");
   redirect("/admin/careers");
@@ -219,25 +261,28 @@ export async function createCareerAction(formData: FormData) {
 
 export async function updateCareerAction(id: string, formData: FormData) {
   await requireRole("ADMIN", "EDITOR");
-  const title = String(formData.get("title") || "");
-  const slug = String(formData.get("slug") || "") || slugifyVietnamese(title);
+  const title = String(formData.get("title") || "").trim();
+  const rawSlug = String(formData.get("slug") || "").trim();
+  const slug = await uniqueSlug(rawSlug || slugifyVietnamese(title), "career", id);
 
   await prisma.career.update({
     where: { id },
     data: {
       title,
       slug,
-      department: String(formData.get("department") || "") || null,
-      location: String(formData.get("location") || "") || null,
-      salaryRange: String(formData.get("salaryRange") || "") || null,
-      description: (function(){ const v = String(formData.get("description") || "").trim(); return v ? { html: v } : undefined; })(),
-      requirements: (function(){ const v = String(formData.get("requirements") || "").trim(); return v ? { html: v } : undefined; })(),
-      benefits: (function(){ const v = String(formData.get("benefits") || "").trim(); return v ? { html: v } : undefined; })(),
+      department: String(formData.get("department") || "").trim() || null,
+      location: String(formData.get("location") || "").trim() || null,
+      salaryRange: String(formData.get("salaryRange") || "").trim() || null,
+      description: htmlOrUndefined(formData.get("description")),
+      requirements: htmlOrUndefined(formData.get("requirements")),
+      benefits: htmlOrUndefined(formData.get("benefits")),
       published: formData.get("published") === "on",
     },
   });
+
   revalidatePath("/admin/careers");
   revalidatePath("/tuyen-dung");
+  revalidatePath(`/tuyen-dung/${slug}`);
   redirect("/admin/careers");
 }
 
@@ -248,7 +293,7 @@ export async function deleteCareerAction(id: string) {
   revalidatePath("/tuyen-dung");
 }
 
-// ─── LEADS ──────────────────────────────────────────────────
+// ─── LEADS ───────────────────────────────────────────────────
 export async function updateLeadStatusAction(id: string, status: string) {
   await requireRole("ADMIN", "EDITOR");
   await prisma.contactLead.update({
@@ -264,7 +309,7 @@ export async function deleteLeadAction(id: string) {
   revalidatePath("/admin/leads");
 }
 
-// ─── SETTINGS ───────────────────────────────────────────────
+// ─── SETTINGS ────────────────────────────────────────────────
 export async function updateSettingsAction(formData: FormData) {
   await requireRole("ADMIN");
 
@@ -292,7 +337,6 @@ export async function updateSettingsAction(formData: FormData) {
   }
 
   revalidatePath("/admin/settings");
-  revalidatePath("/");
-  revalidatePath("/lien-he");
+  revalidatePath("/", "layout");
   redirect("/admin/settings?saved=1");
 }
