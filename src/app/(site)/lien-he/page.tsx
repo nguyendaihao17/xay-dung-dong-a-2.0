@@ -4,18 +4,24 @@ import { Container } from "@/components/ui/container";
 import { Section } from "@/components/ui/section";
 import { PageHero } from "@/components/site/page-hero";
 import { ContactForm } from "@/components/site/contact-form";
-import { clientConfig } from "@/lib/env-client";
+import { getSiteSettings } from "@/lib/settings";
+import { buildMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const revalidate = 3600;
+
+export const metadata: Metadata = buildMetadata({
   title: "Liên hệ",
-  description: "Liên hệ với Công ty TNHH Xây dựng Đông Á để được tư vấn miễn phí về thiết kế, thi công và dự toán.",
-};
+  description: "Liên hệ với Công ty TNHH Xây dựng Đông Á để được tư vấn miễn phí.",
+  path: "/lien-he",
+});
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+
   const contacts = [
-    { icon: Phone, label: "Điện thoại", value: clientConfig.NEXT_PUBLIC_PHONE || "Đang cập nhật" },
-    { icon: Mail, label: "Email", value: "info@xddonga.vn" },
-    { icon: MapPin, label: "Địa chỉ", value: "Đang cập nhật" },
+    { icon: Phone, label: "Điện thoại", value: settings.phone || "Đang cập nhật" },
+    { icon: Mail, label: "Email", value: settings.email || "info@xddonga.vn" },
+    { icon: MapPin, label: "Địa chỉ", value: settings.address || "Đang cập nhật" },
     { icon: Clock, label: "Giờ làm việc", value: "T2 - T7, 8:00 - 17:30" },
   ];
 

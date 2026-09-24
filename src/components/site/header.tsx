@@ -4,22 +4,31 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { mainNav } from "@/config/navigation";
-import { clientConfig } from "@/lib/env-client";
 import { Container } from "@/components/ui/container";
 import { cn } from "@/lib/utils";
 
-export function Header() {
+type Props = {
+  companyName: string;
+  logoUrl: string;
+};
+
+export function Header({ companyName, logoUrl }: Props) {
   const [open, setOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur-sm">
       <Container className="flex h-[var(--header-height-mobile)] items-center justify-between lg:h-[var(--header-height)]">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center bg-navy-900 text-lg font-bold text-white">
-            ĐA
-          </div>
+          {logoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoUrl} alt={companyName} className="h-10 w-auto" />
+          ) : (
+            <div className="flex h-9 w-9 items-center justify-center bg-navy-900 text-lg font-bold text-white">
+              ĐA
+            </div>
+          )}
           <span className="hidden font-display text-lg uppercase tracking-wide text-navy-900 sm:block">
-            {clientConfig.NEXT_PUBLIC_SITE_NAME}
+            {companyName}
           </span>
         </Link>
 

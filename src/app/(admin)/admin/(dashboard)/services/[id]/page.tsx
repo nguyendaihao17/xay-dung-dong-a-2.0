@@ -8,14 +8,21 @@ export const dynamic = "force-dynamic";
 
 export default async function EditServicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const service = await prisma.service.findUnique({ where: { id } });
+  const service = await prisma.service.findUnique({
+    where: { id },
+    include: { coverImage: true },
+  });
   if (!service) notFound();
 
   const boundAction = updateServiceAction.bind(null, id);
 
   return (
     <FormShell title="Sửa dịch vụ" description={service.title}>
-      <ServiceForm action={boundAction} initial={service} submitLabel="Cập nhật" />
+      <ServiceForm
+        action={boundAction}
+        initial={{ ...service, coverImage: service.coverImage ? { url: service.coverImage.url } : null }}
+        submitLabel="Cập nhật"
+      />
     </FormShell>
   );
 }

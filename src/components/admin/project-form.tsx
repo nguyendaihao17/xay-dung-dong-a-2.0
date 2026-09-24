@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label, Select } from "@/components/ui/field";
+import { MediaPicker } from "@/components/admin/media-picker";
 
 type Initial = {
   title?: string;
@@ -14,6 +15,7 @@ type Initial = {
   status?: string;
   published?: boolean;
   featured?: boolean;
+  coverImage?: { url: string } | null;
 };
 
 export function ProjectForm({
@@ -35,6 +37,7 @@ export function ProjectForm({
         <Label htmlFor="slug">Slug (để trống để tự sinh)</Label>
         <Input id="slug" name="slug" defaultValue={initial.slug} className="mt-2" />
       </div>
+      <MediaPicker name="coverImageUrl" initialUrl={initial.coverImage?.url || ""} label="Ảnh đại diện" />
       <div>
         <Label htmlFor="shortDescription">Mô tả ngắn</Label>
         <Textarea id="shortDescription" name="shortDescription" rows={3} defaultValue={initial.shortDescription || ""} className="mt-2" />

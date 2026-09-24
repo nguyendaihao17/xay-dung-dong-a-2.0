@@ -8,14 +8,21 @@ export const dynamic = "force-dynamic";
 
 export default async function EditArticlePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const article = await prisma.article.findUnique({ where: { id } });
+  const article = await prisma.article.findUnique({
+    where: { id },
+    include: { coverImage: true },
+  });
   if (!article) notFound();
 
   const boundAction = updateArticleAction.bind(null, id);
 
   return (
     <FormShell title="Sửa bài viết" description={article.title}>
-      <ArticleForm action={boundAction} initial={article} submitLabel="Cập nhật" />
+      <ArticleForm
+        action={boundAction}
+        initial={{ ...article, coverImage: article.coverImage ? { url: article.coverImage.url } : null }}
+        submitLabel="Cập nhật"
+      />
     </FormShell>
   );
 }
