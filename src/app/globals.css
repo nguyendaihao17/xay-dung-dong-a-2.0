@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --header-height: 4.5rem;
+    --header-height-mobile: 3.75rem;
+  }
+  html { -webkit-tap-highlight-color: transparent; }
+  body { text-rendering: optimizeLegibility; }
+  :focus-visible { outline: 2px solid #3a66a2; outline-offset: 2px; }
+  ::selection { background: #0f2140; color: #fff; }
+}
+
+@layer components {
+  .container-site { @apply container mx-auto; }
+}

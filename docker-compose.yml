@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: donga
+      POSTGRES_PASSWORD: donga_dev_password
+      POSTGRES_DB: donga_cms
+    volumes:
+      - donga_pgdata:/var/lib/postgresql/data
+
+volumes:
+  donga_pgdata:

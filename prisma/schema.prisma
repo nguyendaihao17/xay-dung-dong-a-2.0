@@ -1,0 +1,360 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(EDITOR)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  articles     Article[]
+  auditLogs    AuditLog[]
+  @@map("users")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+}
+
+model Media {
+  id             String    @id @default(cuid())
+  type           MediaType @default(IMAGE)
+  url            String
+  storageKey     String?   @unique
+  fileName       String
+  mimeType       String
+  size           Int
+  width          Int?
+  height         Int?
+  alt            String?
+  caption        String?
+  folder         String    @default("/")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  projectCovers  Project[]      @relation("ProjectCover")
+  projectOg      Project[]      @relation("ProjectOgImage")
+  projectGallery ProjectImage[]
+  serviceCovers  Service[]      @relation("ServiceCover")
+  serviceOg      Service[]      @relation("ServiceOgImage")
+  articleCovers  Article[]      @relation("ArticleCover")
+  articleOg      Article[]      @relation("ArticleOgImage")
+  albumCovers    Album[]        @relation("AlbumCover")
+  albumItems     AlbumItem[]
+  @@index([folder])
+  @@index([type])
+  @@map("media")
+}
+
+model Service {
+  id               String   @id @default(cuid())
+  title            String
+  slug             String   @unique
+  icon             String?
+  shortDescription String?
+  content          Json?
+  coverImageId     String?
+  coverImage       Media?   @relation("ServiceCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  ogImageId        String?
+  ogImage          Media?   @relation("ServiceOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  featured         Boolean  @default(false)
+  published        Boolean  @default(false)
+  sortOrder        Int      @default(0)
+  seoTitle         String?
+  metaDescription  String?
+  canonicalUrl     String?
+  noIndex          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  @@index([published, sortOrder])
+  @@map("services")
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  COMPLETED
+  ON_HOLD
+}
+
+model ProjectCategory {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  sortOrder Int       @default(0)
+  projects  Project[]
+  @@map("project_categories")
+}
+
+model Project {
+  id               String           @id @default(cuid())
+  title            String
+  slug             String           @unique
+  categoryId       String?
+  category         ProjectCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  location         String?
+  client           String?
+  year             Int?
+  status           ProjectStatus    @default(COMPLETED)
+  scope            String?
+  shortDescription String?
+  content          Json?
+  coverImageId     String?
+  coverImage       Media?           @relation("ProjectCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  ogImageId        String?
+  ogImage          Media?           @relation("ProjectOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  gallery          ProjectImage[]
+  featured         Boolean          @default(false)
+  published        Boolean          @default(false)
+  publishedAt      DateTime?
+  sortOrder        Int              @default(0)
+  seoTitle         String?
+  metaDescription  String?
+  canonicalUrl     String?
+  noIndex          Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  @@index([published, featured, sortOrder])
+  @@index([categoryId])
+  @@index([year])
+  @@map("projects")
+}
+
+model ProjectImage {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  caption   String?
+  sortOrder Int     @default(0)
+  @@unique([projectId, mediaId])
+  @@index([projectId, sortOrder])
+  @@map("project_images")
+}
+
+model ArticleCategory {
+  id        String    @id @default(cuid())
+  name      String
+  slug      String    @unique
+  sortOrder Int       @default(0)
+  articles  Article[]
+  @@map("article_categories")
+}
+
+model Article {
+  id              String           @id @default(cuid())
+  title           String
+  slug            String           @unique
+  excerpt         String?
+  content         Json?
+  categoryId      String?
+  category        ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  coverImageId    String?
+  coverImage      Media?           @relation("ArticleCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  ogImageId       String?
+  ogImage         Media?           @relation("ArticleOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  authorId        String?
+  author          User?            @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  published       Boolean          @default(false)
+  publishedAt     DateTime?
+  featured        Boolean          @default(false)
+  viewCount       Int              @default(0)
+  seoTitle        String?
+  metaDescription String?
+  canonicalUrl    String?
+  noIndex         Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  @@index([published, publishedAt])
+  @@index([categoryId])
+  @@map("articles")
+}
+
+model Album {
+  id           String      @id @default(cuid())
+  title        String
+  slug         String      @unique
+  description  String?
+  coverImageId String?
+  coverImage   Media?      @relation("AlbumCover", fields: [coverImageId], references: [id], onDelete: SetNull)
+  items        AlbumItem[]
+  published    Boolean     @default(false)
+  sortOrder    Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  @@index([published, sortOrder])
+  @@map("albums")
+}
+
+model AlbumItem {
+  id        String @id @default(cuid())
+  albumId   String
+  album     Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  mediaId   String
+  media     Media  @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  caption   String?
+  sortOrder Int    @default(0)
+  @@unique([albumId, mediaId])
+  @@index([albumId, sortOrder])
+  @@map("album_items")
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum ApplicationStatus {
+  NEW
+  SCREENING
+  INTERVIEW
+  OFFER
+  HIRED
+  REJECTED
+}
+
+model Career {
+  id              String         @id @default(cuid())
+  title           String
+  slug            String         @unique
+  department      String?
+  location        String?
+  employmentType  EmploymentType @default(FULL_TIME)
+  quantity        Int?
+  salaryRange     String?
+  description     Json?
+  requirements    Json?
+  benefits        Json?
+  deadline        DateTime?
+  published       Boolean        @default(false)
+  sortOrder       Int            @default(0)
+  seoTitle        String?
+  metaDescription String?
+  noIndex         Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  applications    JobApplication[]
+  @@index([published, sortOrder])
+  @@map("careers")
+}
+
+model JobApplication {
+  id          String            @id @default(cuid())
+  careerId    String?
+  career      Career?           @relation(fields: [careerId], references: [id], onDelete: SetNull)
+  fullName    String
+  email       String
+  phone       String
+  coverLetter String?
+  cvUrl       String?
+  status      ApplicationStatus @default(NEW)
+  note        String?
+  ip          String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  @@index([careerId])
+  @@index([status])
+  @@map("job_applications")
+}
+
+model Page {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  template        String   @default("default")
+  content         Json?
+  published       Boolean  @default(true)
+  seoTitle        String?
+  metaDescription String?
+  canonicalUrl    String?
+  noIndex         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  @@map("pages")
+}
+
+enum LeadStatus {
+  NEW
+  IN_PROGRESS
+  CONTACTED
+  WON
+  LOST
+  SPAM
+}
+
+model ContactLead {
+  id          String     @id @default(cuid())
+  fullName    String
+  email       String?
+  phone       String
+  company     String?
+  subject     String?
+  message     String
+  serviceId   String?
+  status      LeadStatus @default(NEW)
+  source      String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  ip          String?
+  userAgent   String?
+  note        String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  @@index([status, createdAt])
+  @@map("contact_leads")
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  group     String   @default("general")
+  updatedAt DateTime @updatedAt
+  @@index([group])
+  @@map("site_settings")
+}
+
+model Redirect {
+  id         String   @id @default(cuid())
+  from       String   @unique
+  to         String
+  statusCode Int      @default(301)
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  @@map("redirects")
+}
