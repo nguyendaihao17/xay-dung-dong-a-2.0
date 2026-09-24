@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     default: clientConfig.NEXT_PUBLIC_SITE_NAME,
     template: "%s | " + clientConfig.NEXT_PUBLIC_SITE_NAME,
   },
-  description: "Tu van - Thiet ke - Giam sat - Thi cong xay dung",
+  description: "Tư vấn • Thiết kế • Giám sát • Thi công xây dựng",
   robots: { index: true, follow: true },
 };
 

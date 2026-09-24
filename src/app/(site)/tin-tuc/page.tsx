@@ -4,15 +4,20 @@ import { Section } from "@/components/ui/section";
 import { PageHero } from "@/components/site/page-hero";
 import { ArticleCard } from "@/components/site/article-card";
 import { CTABlock } from "@/components/site/cta-block";
-import { ARTICLES } from "@/lib/placeholder-data";
+import { articleRepository } from "@/lib/repositories/article.repository";
+import { buildMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = {
+export const revalidate = 900;
+
+export const metadata: Metadata = buildMetadata({
   title: "Tin tức",
-  description:
-    "Cập nhật tin tức, kiến thức và kinh nghiệm trong ngành xây dựng từ Công ty TNHH Xây dựng Đông Á.",
-};
+  description: "Cập nhật tin tức, kiến thức và kinh nghiệm trong ngành xây dựng.",
+  path: "/tin-tuc",
+});
 
-export default function NewsPage() {
+export default async function NewsPage() {
+  const articles = await articleRepository.list({ published: true }).catch(() => []);
+
   return (
     <>
       <PageHero
@@ -24,18 +29,23 @@ export default function NewsPage() {
 
       <Section>
         <Container>
-          <div className="grid gap-x-8 gap-y-16 lg:grid-cols-3">
-            {ARTICLES.map((a) => (
-              <ArticleCard
-                key={a.slug}
-                slug={a.slug}
-                title={a.title}
-                excerpt={a.excerpt}
-                category={a.category}
-                publishedAt={a.publishedAt}
-              />
-            ))}
-          </div>
+          {articles.length === 0 ? (
+            <p className="py-20 text-center text-neutral-500">Chưa có bài viết nào được đăng.</p>
+          ) : (
+            <div className="grid gap-x-8 gap-y-16 lg:grid-cols-3">
+              {articles.map((a) => (
+                <ArticleCard
+                  key={a.id}
+                  slug={a.slug}
+                  title={a.title}
+                  excerpt={a.excerpt || undefined}
+                  category={a.category?.name}
+                  publishedAt={a.publishedAt || undefined}
+                  coverImage={a.coverImage?.url}
+                />
+              ))}
+            </div>
+          )}
         </Container>
       </Section>
 
