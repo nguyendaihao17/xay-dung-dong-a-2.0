@@ -1,42 +1,43 @@
 import type { Metadata, Viewport } from "next";
 import { Be_Vietnam_Pro, Barlow_Condensed } from "next/font/google";
-import { clientConfig } from "@/lib/env-client";
+import { Toaster } from "sonner";
+import { buildMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
-const body = Be_Vietnam_Pro({
+const sans = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-body",
+  weight: ["300", "400", "500", "600", "700"],
   display: "swap",
+  variable: "--font-sans",
 });
 
 const display = Barlow_Condensed({
   subsets: ["latin", "vietnamese"],
-  weight: ["500", "600", "700"],
-  variable: "--font-display",
+  weight: ["500", "600", "700", "800"],
   display: "swap",
+  variable: "--font-display",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(clientConfig.NEXT_PUBLIC_SITE_URL),
-  title: {
-    default: clientConfig.NEXT_PUBLIC_SITE_NAME,
-    template: "%s | " + clientConfig.NEXT_PUBLIC_SITE_NAME,
-  },
-  description: "Tư vấn • Thiết kế • Giám sát • Thi công xây dựng",
-  robots: { index: true, follow: true },
-};
+export const metadata: Metadata = buildMetadata({
+  title: "Trang chủ",
+  description:
+    "CÔNG TY TNHH TƯ VẤN THIẾT KẾ - XÂY DỰNG ĐÔNG Á. Tư vấn - Thiết kế - Giám sát - Thi công xây dựng. Niềm tin - Chất lượng - Uy tín.",
+  path: "/",
+});
 
 export const viewport: Viewport = {
+  themeColor: "#0d1f36",
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0f2140",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={body.variable + " " + display.variable}>
-      <body className="bg-white font-sans text-neutral-800 antialiased">{children}</body>
+    <html lang="vi" className={`${sans.variable} ${display.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen bg-white font-sans text-navy-900">
+        {children}
+        <Toaster richColors position="top-right" />
+      </body>
     </html>
   );
 }

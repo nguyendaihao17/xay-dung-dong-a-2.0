@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { clientConfig } from "@/lib/env-client";
+
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://xaydungdonga.netlify.app";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,9 +8,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/api"],
+        disallow: ["/admin", "/api/"],
       },
     ],
-    sitemap: `${clientConfig.NEXT_PUBLIC_SITE_URL}/sitemap.xml`,
+    sitemap: `${BASE_URL}/sitemap.xml`,
+    host: BASE_URL,
   };
 }

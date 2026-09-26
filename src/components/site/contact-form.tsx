@@ -1,109 +1,166 @@
 "use client";
 
 import { useState } from "react";
+import { Send, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea, Label, FieldError } from "@/components/ui/field";
-import { Stack } from "@/components/ui/stack";
+
+type FormState = "idle" | "loading" | "success" | "error";
 
 export function ContactForm() {
-  const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
+  const [state, setState] = useState<FormState>("idle");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [message, setMessage] = useState("");
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("sending");
+    setState("loading");
     setErrors({});
+    setMessage("");
 
-    const form = new FormData(e.currentTarget);
-    const payload = Object.fromEntries(form.entries());
+    const form = e.currentTarget;
+    const data = new FormData(form);
 
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: data,
       });
-      const data = await res.json().catch(() => ({}));
+
+      const json = await res.json().catch(() => ({}));
+
       if (!res.ok) {
-        setErrors(data.errors || { _: data.error || "Có lỗi xảy ra" });
-        setStatus("error");
+        if (json.errors) {
+          setErrors(json.errors);
+        }
+        setMessage(json.error || "Gửi liên hệ thất bại. Vui lòng thử lại.");
+        setState("error");
         return;
       }
-      setStatus("ok");
-      (e.target as HTMLFormElement).reset();
+
+      setState("success");
+      setMessage("Cảm ơn bạn! Chúng tôi sẽ liên hệ lại trong thời gian sớm nhất.");
+      form.reset();
     } catch {
-      setStatus("error");
-      setErrors({ _: "Không kết nối được máy chủ" });
+      setMessage("Không thể kết nối máy chủ. Vui lòng thử lại sau.");
+      setState("error");
     }
   }
 
-  if (status === "ok") {
+  if (state === "success") {
     return (
-      <div className="border border-accent-green bg-accent-green/5 p-8">
-        <h3 className="font-display text-xl uppercase text-accent-green">
-          Đã gửi thành công
+      <div className="border border-emerald-200 bg-emerald-50 p-8 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+          <CheckCircle2 size={32} className="text-emerald-600" />
+        </div>
+        <h3 className="mt-6 font-display text-xl font-bold uppercase text-emerald-900">
+          Gửi thành công
         </h3>
-        <p className="mt-3 text-neutral-700">
-          Cảm ơn bạn đã liên hệ. Chúng tôi sẽ phản hồi trong thời gian sớm nhất.
-        </p>
+        <p className="mt-3 text-sm text-emerald-700">{message}</p>
+        <button
+          type="button"
+          onClick={() => setState("idle")}
+          className="mt-6 text-xs font-semibold uppercase tracking-wider text-emerald-700 underline hover:no-underline"
+        >
+          Gửi liên hệ khác
+        </button>
       </div>
     );
   }
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <Stack gap="md">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="fullName">Họ tên *</Label>
-            <Input id="fullName" name="fullName" required className="mt-2" />
-            <FieldError>{errors.fullName}</FieldError>
-          </div>
-          <div>
-            <Label htmlFor="phone">Điện thoại *</Label>
-            <Input id="phone" name="phone" required className="mt-2" />
-            <FieldError>{errors.phone}</FieldError>
-          </div>
+      {state === "error" && message && (
+        <div className="flex items-start gap-3 border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <AlertCircle size={18} className="mt-0.5 shrink-0" />
+          <span>{message}</span>
         </div>
+      )}
 
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" className="mt-2" />
-            <FieldError>{errors.email}</FieldError>
-          </div>
-          <div>
-            <Label htmlFor="company">Công ty</Label>
-            <Input id="company" name="company" className="mt-2" />
-          </div>
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="name">Họ và tên *</Label>
+          <Input
+            id="name"
+            name="name"
+            required
+            placeholder="Nguyễn Văn A"
+            className="mt-2"
+          />
+          <FieldError>{errors.name}</FieldError>
         </div>
 
         <div>
-          <Label htmlFor="subject">Chủ đề</Label>
-          <Input id="subject" name="subject" className="mt-2" />
+          <Label htmlFor="phone">Số điện thoại *</Label>
+          <Input
+            id="phone"
+            name="phone"
+            type="tel"
+            required
+            placeholder="0909 123 456"
+            className="mt-2"
+          />
+          <FieldError>{errors.phone}</FieldError>
         </div>
+      </div>
 
-        <div>
-          <Label htmlFor="message">Nội dung *</Label>
-          <Textarea id="message" name="message" required className="mt-2" rows={6} />
-          <FieldError>{errors.message}</FieldError>
-        </div>
-
-        <input
-          type="text"
-          name="honeypot"
-          tabIndex={-1}
-          autoComplete="off"
-          className="absolute left-[-9999px] h-0 w-0"
-          aria-hidden="true"
+      <div>
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          placeholder="email@example.com"
+          className="mt-2"
         />
+        <FieldError>{errors.email}</FieldError>
+      </div>
 
-        <FieldError>{errors._}</FieldError>
+      <div>
+        <Label htmlFor="subject">Tiêu đề</Label>
+        <Input
+          id="subject"
+          name="subject"
+          placeholder="VD: Tư vấn thiết kế nhà phố"
+          className="mt-2"
+        />
+      </div>
 
-        <Button type="submit" size="lg" disabled={status === "sending"}>
-          {status === "sending" ? "Đang gửi..." : "Gửi liên hệ"}
-        </Button>
-      </Stack>
+      <div>
+        <Label htmlFor="message">Nội dung *</Label>
+        <Textarea
+          id="message"
+          name="message"
+          required
+          rows={5}
+          placeholder="Mô tả ngắn về dự án hoặc yêu cầu của bạn..."
+          className="mt-2"
+        />
+        <FieldError>{errors.message}</FieldError>
+      </div>
+
+      <Button
+        type="submit"
+        size="lg"
+        disabled={state === "loading"}
+        className="w-full"
+      >
+        {state === "loading" ? (
+          <>
+            <Loader2 size={18} className="animate-spin" />
+            Đang gửi...
+          </>
+        ) : (
+          <>
+            <Send size={18} />
+            Gửi liên hệ
+          </>
+        )}
+      </Button>
+
+      <p className="text-center text-xs text-neutral-500">
+        Thông tin của bạn được bảo mật tuyệt đối.
+      </p>
     </form>
   );
 }

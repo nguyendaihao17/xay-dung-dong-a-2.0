@@ -1,36 +1,115 @@
 import type { Config } from "tailwindcss";
 
-export default {
-  content: ["./src/**/*.{ts,tsx,mdx}"],
+const config: Config = {
+  darkMode: ["class"],
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
   theme: {
     container: {
       center: true,
-      padding: { DEFAULT: "1.25rem", sm: "1.5rem", lg: "2rem", xl: "3rem" },
-      screens: { "2xl": "1360px" },
+      padding: { DEFAULT: "1rem", sm: "1.5rem", lg: "2rem" },
+      screens: { "2xl": "1280px" },
     },
     extend: {
       colors: {
-        navy: { 50: "#f2f6fb", 100: "#e3ebf5", 200: "#c2d3e9", 300: "#93b0d6", 400: "#5d86bd", 500: "#3a66a2", 600: "#2b4f86", 700: "#24406d", 800: "#1b3054", 900: "#0f2140", 950: "#08152b" },
-        accent: { green: "#1e7a46", red: "#c1272d" },
-        neutral: { 0: "#ffffff", 50: "#f7f8f9", 100: "#eef0f2", 200: "#dfe3e7", 300: "#c4cbd2", 400: "#98a2ad", 500: "#6b7683", 600: "#4d5763", 700: "#3a424c", 800: "#262c33", 900: "#15191e" },
+        // === Màu thương hiệu Đông Á ===
+        navy: {
+          50:  "#f0f5fa",
+          100: "#dae6f1",
+          200: "#b5cce4",
+          300: "#8aaecf",
+          400: "#5b8bb5",
+          500: "#3d6e9c",
+          600: "#2c557f",
+          700: "#1f4067",
+          800: "#162f4d",
+          900: "#0d1f36",  // navy đậm chủ đạo
+          950: "#071322",
+        },
+        accent: {
+          DEFAULT: "#e85d2a",  // cam nhấn
+          hover:   "#d14a1a",
+          light:   "#fff1eb",
+          red:     "#c1272d",  // đỏ cho nút xóa
+          green:   "#22a06b",  // xanh lá
+          yellow:  "#f5a623",
+        },
+        // Màu neutral (xám)
+        neutral: {
+          50:  "#fafafa",
+          100: "#f5f5f5",
+          200: "#e5e5e5",
+          300: "#d4d4d4",
+          400: "#a3a3a3",
+          500: "#737373",
+          600: "#525252",
+          700: "#404040",
+          800: "#262626",
+          900: "#171717",
+        },
+        // Shadcn-style tokens
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
       },
       fontFamily: {
-        sans: ["var(--font-body)", "system-ui", "sans-serif"],
-        display: ["var(--font-display)", "Georgia", "serif"],
+        sans:    ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
       fontSize: {
-        "display-xl": ["clamp(2.5rem, 6vw, 5.5rem)", { lineHeight: "0.98", letterSpacing: "-0.02em" }],
-        "display-lg": ["clamp(2rem, 4.5vw, 3.75rem)", { lineHeight: "1.04", letterSpacing: "-0.02em" }],
-        "display-md": ["clamp(1.5rem, 3vw, 2.5rem)", { lineHeight: "1.12", letterSpacing: "-0.01em" }],
+        "display-1": ["4rem",    { lineHeight: "1.05", letterSpacing: "-0.02em" }],
+        "display-2": ["3rem",    { lineHeight: "1.1",  letterSpacing: "-0.02em" }],
+        "display-3": ["2.25rem", { lineHeight: "1.15", letterSpacing: "-0.01em" }],
       },
-      spacing: { section: "clamp(4rem, 10vw, 9rem)" },
-      maxWidth: { prose: "68ch" },
-      transitionTimingFunction: { architectural: "cubic-bezier(0.22, 1, 0.36, 1)" },
+      spacing: {
+        "header-height":        "80px",
+        "header-height-mobile": "64px",
+      },
+      boxShadow: {
+        card:  "0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)",
+        lift:  "0 10px 30px -10px rgb(13 31 54 / 0.15)",
+        glow:  "0 0 40px -10px rgb(232 93 42 / 0.4)",
+      },
       keyframes: {
-        "fade-up": { from: { opacity: "0", transform: "translateY(16px)" }, to: { opacity: "1", transform: "none" } },
+        "fade-in":   { from: { opacity: "0", transform: "translateY(12px)" }, to: { opacity: "1", transform: "translateY(0)" } },
+        "fade-up":   { from: { opacity: "0", transform: "translateY(24px)" }, to: { opacity: "1", transform: "translateY(0)" } },
+        "slide-in":  { from: { transform: "translateX(-100%)" },               to: { transform: "translateX(0)" } },
+        "marquee":   { from: { transform: "translateX(0)" },                   to: { transform: "translateX(-50%)" } },
       },
-      animation: { "fade-up": "fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both" },
+      animation: {
+        "fade-in":  "fade-in 0.5s ease-out",
+        "fade-up":  "fade-up 0.7s ease-out",
+        "slide-in": "slide-in 0.3s ease-out",
+        "marquee":  "marquee 30s linear infinite",
+      },
     },
   },
-  plugins: [],
-} satisfies Config;
+  plugins: [require("tailwindcss-animate")],
+};
+
+export default config;

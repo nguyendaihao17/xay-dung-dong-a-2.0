@@ -10,7 +10,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
   return (
     <>
-      <Header companyName={settings.companyName} logoUrl={settings.logoUrl} />
+      <Header
+        companyName={settings.companyName}
+        logoUrl={settings.logoUrl}
+        phone={settings.phone}
+      />
       <main id="main" className="pb-20 lg:pb-0">
         {children}
       </main>

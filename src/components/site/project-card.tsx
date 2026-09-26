@@ -1,53 +1,78 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 type Props = {
-  slug: string;
+  id: string;
   title: string;
-  category?: string;
-  location?: string;
-  year?: number;
-  coverImage?: string;
-  featured?: boolean;
+  slug: string;
+  shortDescription: string | null;
+  location: string | null;
+  year: number | null;
+  coverImageUrl: string | null;
+  categoryName?: string | null;
 };
 
-export function ProjectCard({ slug, title, category, location, year, coverImage, featured }: Props) {
+export function ProjectCard({
+  title,
+  slug,
+  shortDescription,
+  location,
+  year,
+  coverImageUrl,
+  categoryName,
+}: Props) {
   return (
     <Link
       href={`/du-an/${slug}`}
-      className={cn("group block", featured && "lg:col-span-2 lg:row-span-2")}
+      className="group flex flex-col overflow-hidden border border-neutral-200 bg-white transition-all duration-300 hover:border-navy-900 hover:shadow-lift"
     >
-      <div className={cn("relative overflow-hidden bg-neutral-200", featured ? "aspect-[4/3] lg:aspect-[16/10]" : "aspect-[4/3]")}>
-        {coverImage ? (
+      {/* Image */}
+      <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
+        {coverImageUrl ? (
           <Image
-            src={coverImage}
+            src={coverImageUrl}
             alt={title}
             fill
-            sizes={featured ? "(min-width: 1024px) 66vw, 100vw" : "(min-width: 1024px) 33vw, 100vw"}
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
+            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-navy-100 text-navy-300">
-            <span className="font-display text-4xl">ĐA</span>
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-navy-900 to-navy-700 text-white/30">
+            <span className="font-display text-4xl font-bold">ĐA</span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-navy-950/80 via-navy-950/10 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-        <div className="absolute right-5 top-5 flex h-10 w-10 items-center justify-center bg-white opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-          <ArrowUpRight size={20} className="text-navy-900" />
+
+        {/* Category badge */}
+        {categoryName && (
+          <div className="absolute left-4 top-4 bg-navy-900 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+            {categoryName}
+          </div>
+        )}
+
+        {/* Hover overlay arrow */}
+        <div className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center bg-accent text-white opacity-0 transition-all duration-300 group-hover:opacity-100">
+          <ArrowUpRight size={18} />
         </div>
       </div>
-      <div className="mt-5">
-        <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-widest text-neutral-500">
-          {category && <span>{category}</span>}
-          {category && (location || year) && <span>·</span>}
+
+      {/* Content */}
+      <div className="flex flex-1 flex-col p-6">
+        <div className="flex flex-wrap items-center gap-3 text-[11px] font-medium uppercase tracking-[0.15em] text-accent">
           {location && <span>{location}</span>}
-          {year && <span>· {year}</span>}
+          {location && year && <span className="text-neutral-300">•</span>}
+          {year && <span>{year}</span>}
         </div>
-        <h3 className="mt-2 font-display text-2xl uppercase leading-tight text-navy-900 transition-colors group-hover:text-navy-700">
+
+        <h3 className="mt-3 font-display text-lg font-bold uppercase leading-tight text-navy-900 transition-colors group-hover:text-accent md:text-xl">
           {title}
         </h3>
+
+        {shortDescription && (
+          <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-neutral-600">
+            {shortDescription}
+          </p>
+        )}
       </div>
     </Link>
   );

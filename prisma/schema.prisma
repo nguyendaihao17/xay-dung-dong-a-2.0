@@ -358,3 +358,18 @@ model Redirect {
   createdAt  DateTime @default(now())
   @@map("redirects")
 }
+
+// ==================== PARTNER (Đối tác) ====================
+model Partner {
+  id          String   @id @default(cuid())
+  name        String
+  logoUrl     String?
+  websiteUrl  String?
+  order       Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, order])
+  @@map("partners")
+}

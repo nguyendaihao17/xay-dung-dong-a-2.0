@@ -1,35 +1,86 @@
-import { Button } from "@/components/ui/button";
+import { Phone, Mail, ArrowRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
+import { ButtonLink } from "@/components/ui/button-link";
+import { getSiteSettings } from "@/lib/settings";
 
 type Props = {
   title?: string;
   description?: string;
 };
 
-export function CTABlock({
-  title = "Sẵn sàng khởi công dự án của bạn?",
-  description = "Liên hệ ngay để được tư vấn miễn phí về thiết kế, thi công và dự toán chi phí.",
-}: Props) {
+export async function CTABlock({
+  title = "Bạn cần tư vấn về dự án xây dựng?",
+  description = "Đội ngũ kỹ sư của Đông Á sẵn sàng lắng nghe và tư vấn miễn phí cho dự án của bạn. Hãy liên hệ ngay hôm nay.",
+}: Props = {}) {
+  const settings = await getSiteSettings();
+
   return (
-    <section className="bg-navy-950 text-white">
-      <Container className="py-20 lg:py-28">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
+    <section className="relative overflow-hidden bg-navy-900">
+      {/* Decorative grid */}
+      <div className="absolute inset-0 bg-grid opacity-10" />
+      <div className="absolute -right-20 -top-20 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
+
+      <Container className="relative py-20 md:py-28">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
           <div>
-            <h2 className="font-display text-display-md uppercase leading-tight">{title}</h2>
-            <p className="mt-4 max-w-xl text-white/70">{description}</p>
+            <span className="inline-block text-xs font-semibold uppercase tracking-[0.3em] text-accent">
+              Liên hệ với chúng tôi
+            </span>
+
+            <h2 className="mt-4 font-display text-3xl font-bold uppercase leading-[1.1] text-white md:text-4xl lg:text-5xl">
+              {title}
+            </h2>
+
+            <p className="mt-6 max-w-xl text-base leading-relaxed text-white/70 md:text-lg">
+              {description}
+            </p>
+
+            <div className="mt-10 flex flex-wrap gap-4">
+              <ButtonLink href="/lien-he" variant="accent" size="lg">
+                Gửi yêu cầu
+                <ArrowRight size={18} />
+              </ButtonLink>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-4 lg:justify-end">
-            <Button href="/lien-he" size="lg" className="bg-white text-navy-900 hover:bg-neutral-100">
-              Liên hệ tư vấn
-            </Button>
-            <Button
-              href="/du-an"
-              variant="outline"
-              size="lg"
-              className="border-white text-white hover:bg-white hover:text-navy-900"
-            >
-              Xem dự án
-            </Button>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            {settings.phone && (
+              <a
+                href={`tel:${settings.phone}`}
+                className="group flex items-center gap-5 border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-colors hover:bg-white/10"
+              >
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-accent text-white">
+                  <Phone size={24} strokeWidth={1.5} />
+                </div>
+                <div>
+                  <div className="text-xs font-medium uppercase tracking-[0.2em] text-white/50">
+                    Điện thoại
+                  </div>
+                  <div className="mt-1 font-display text-xl font-bold text-white">
+                    {settings.phone}
+                  </div>
+                </div>
+              </a>
+            )}
+
+            {settings.email && (
+              <a
+                href={`mailto:${settings.email}`}
+                className="group flex items-center gap-5 border border-white/10 bg-white/5 p-6 backdrop-blur-sm transition-colors hover:bg-white/10"
+              >
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center bg-accent text-white">
+                  <Mail size={24} strokeWidth={1.5} />
+                </div>
+                <div>
+                  <div className="text-xs font-medium uppercase tracking-[0.2em] text-white/50">
+                    Email
+                  </div>
+                  <div className="mt-1 font-display text-xl font-bold text-white break-all">
+                    {settings.email}
+                  </div>
+                </div>
+              </a>
+            )}
           </div>
         </div>
       </Container>

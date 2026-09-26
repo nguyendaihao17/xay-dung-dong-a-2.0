@@ -12,6 +12,7 @@ import {
   Settings,
   Image as ImageIcon,
   Wrench,
+  Handshake,
   LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const items = [
   { href: "/admin/careers", label: "Tuyển dụng", icon: Briefcase },
   { href: "/admin/media", label: "Thư viện", icon: ImageIcon },
   { href: "/admin/leads", label: "Liên hệ", icon: MessageSquare },
+  { href: "/admin/partners", label: "Đối tác", icon: Handshake },
   { href: "/admin/users", label: "Người dùng", icon: Users },
   { href: "/admin/settings", label: "Cài đặt", icon: Settings },
 ];

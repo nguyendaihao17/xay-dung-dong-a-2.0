@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 
 export default function NotFound() {
   return (
@@ -12,7 +12,7 @@ export default function NotFound() {
           Trang bạn tìm không tồn tại hoặc đã bị di chuyển.
         </p>
         <div className="mt-10">
-          <Button href="/" size="lg">Về trang chủ</Button>
+          <ButtonLink href="/" size="lg">Về trang chủ</ButtonLink>
         </div>
       </div>
     </div>

@@ -1,61 +1,80 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { Container } from "@/components/ui/container";
+import { ButtonLink } from "@/components/ui/button-link";
 
 type Props = {
+  title?: string;
+  slogan?: string;
+  subtitle?: string;
   imageUrl?: string;
 };
 
-export function Hero({ imageUrl }: Props) {
+export function Hero({
+  title = "TƯ VẤN THIẾT KẾ - XÂY DỰNG ĐÔNG Á",
+  slogan = "NIỀM TIN - CHẤT LƯỢNG - UY TÍN",
+  subtitle = "Tư vấn - Thiết kế - Giám sát - Thi công xây dựng",
+  imageUrl = "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=1920&q=80",
+}: Props) {
   return (
-    <section className="relative flex min-h-[calc(100vh-var(--header-height))] items-end overflow-hidden bg-navy-950 text-white">
-      {imageUrl && (
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40"
-          style={{ backgroundImage: `url(${imageUrl})` }}
+    <section className="relative flex min-h-[calc(100vh-var(--header-height))] items-center overflow-hidden bg-navy-950">
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <Image
+          src={imageUrl}
+          alt={title}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-40"
         />
-      )}
-      {!imageUrl && (
-        <div className="absolute inset-0 bg-gradient-to-br from-navy-950 via-navy-900 to-navy-800" />
-      )}
-      <div className="absolute inset-0 bg-gradient-to-t from-navy-950 via-navy-950/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-navy-950 via-navy-950/80 to-transparent" />
+      </div>
 
-      <Container className="relative pb-20 pt-32 lg:pb-32 lg:pt-40">
-        <div className="max-w-4xl">
-          <div className="flex items-center gap-4">
-            <span className="h-px w-16 bg-white/40" />
-            <span className="text-xs font-medium uppercase tracking-[0.3em] text-white/70">
-              Từ năm 2003
-            </span>
-          </div>
+      {/* Content */}
+      <Container className="relative z-10 py-20">
+        <div className="max-w-3xl animate-fade-up">
+          <span className="inline-block border-l-4 border-accent bg-navy-900/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white backdrop-blur-sm">
+            Công ty TNHH Tư vấn Thiết kế - Xây dựng
+          </span>
 
-          <h1 className="mt-8 font-display text-display-xl uppercase leading-[0.95]">
-            Xây Dựng Đông Á
-            <span className="mt-4 block text-[0.7em] leading-tight text-white/80">
-              Hơn 20 năm<br />
-              kiến tạo công trình bền vững
-            </span>
+          <h1 className="mt-8 font-display text-4xl font-extrabold uppercase leading-[1.05] tracking-tight text-white md:text-5xl lg:text-6xl xl:text-7xl">
+            {title}
           </h1>
 
-          <p className="mt-8 max-w-2xl text-lg leading-relaxed text-white/70 lg:text-xl">
-            Tư vấn • Thiết kế • Giám sát • Thi công xây dựng
+          <p className="mt-6 font-display text-xl font-semibold uppercase tracking-[0.2em] text-accent md:text-2xl lg:text-3xl">
+            {slogan}
           </p>
 
-          <div className="mt-12 flex flex-wrap gap-4">
-            <Button href="/du-an" variant="primary" size="lg" className="bg-white text-navy-900 hover:bg-neutral-100">
-              Khám phá dự án
-            </Button>
-            <Button href="/lien-he" variant="outline" size="lg" className="border-white text-white hover:bg-white hover:text-navy-900">
-              Liên hệ tư vấn
-            </Button>
+          <p className="mt-6 max-w-2xl text-base leading-relaxed text-white/80 md:text-lg">
+            {subtitle}
+          </p>
+
+          <div className="mt-10 flex flex-wrap gap-4">
+            <ButtonLink href="/lien-he" variant="accent" size="lg">
+              Nhận tư vấn miễn phí
+              <ArrowRight size={18} />
+            </ButtonLink>
+            <ButtonLink
+              href="/du-an"
+              variant="outline"
+              size="lg"
+              className="border-white text-white hover:bg-white hover:text-navy-900"
+            >
+              Xem dự án
+            </ButtonLink>
           </div>
         </div>
       </Container>
 
-      <div className="absolute bottom-8 right-8 hidden items-center gap-3 text-xs uppercase tracking-widest text-white/50 lg:flex">
-        <span>Cuộn xuống</span>
-        <span className="block h-12 w-px bg-white/30" />
-      </div>
+      {/* Scroll indicator */}
+      <a
+        href="#stats"
+        aria-label="Cuộn xuống"
+        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 text-white/60 transition-colors hover:text-white md:block"
+      >
+        <ChevronDown size={28} className="animate-bounce" />
+      </a>
     </section>
   );
 }
