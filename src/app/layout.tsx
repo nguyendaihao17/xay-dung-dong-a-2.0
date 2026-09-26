@@ -33,7 +33,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${sans.variable} ${display.variable}`} suppressHydrationWarning>
+    <html lang="vi" data-scroll-behavior="smooth" className={`${sans.variable} ${display.variable}`} suppressHydrationWarning>
       <body className="min-h-screen bg-white font-sans text-navy-900">
         {children}
         <Toaster richColors position="top-right" />

@@ -13,7 +13,6 @@ export default function HomePage() {
   return (
     <>
       <JsonLd data={[organizationSchema(), websiteSchema()]} />
-
       <Hero />
       <Stats />
       <Services />

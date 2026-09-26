@@ -80,14 +80,14 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
             <span className="truncate text-xs text-neutral-500">{selected}</span>
             <div className="flex gap-2">
               <button
-                type="button"
+                type="button" suppressHydrationWarning
                 onClick={() => setOpen(true)}
                 className="text-xs text-navy-900 underline"
               >
                 Đổi
               </button>
               <button
-                type="button"
+                type="button" suppressHydrationWarning
                 onClick={() => setSelected("")}
                 className="text-xs text-accent-red underline"
               >
@@ -98,7 +98,7 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
         </div>
       ) : (
         <button
-          type="button"
+          type="button" suppressHydrationWarning
           onClick={() => setOpen(true)}
           className="flex h-32 w-full items-center justify-center gap-2 border border-dashed border-neutral-300 bg-neutral-50 text-sm text-neutral-500 hover:border-navy-900 hover:text-navy-900"
         >
@@ -122,7 +122,7 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
                   onChange={(e) => handleUpload(e.target.files)}
                 />
                 <button
-                  type="button"
+                  type="button" suppressHydrationWarning
                   onClick={() => fileRef.current?.click()}
                   disabled={uploading}
                   className="inline-flex items-center gap-2 bg-navy-900 px-4 py-2 text-xs font-medium uppercase tracking-wider text-white hover:bg-navy-800 disabled:opacity-50"
@@ -130,7 +130,7 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
                   {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                   {uploading ? "Đang tải..." : "Tải ảnh mới"}
                 </button>
-                <button type="button" onClick={() => setOpen(false)} className="text-neutral-500">
+                <button type="button" suppressHydrationWarning onClick={() => setOpen(false)} className="text-neutral-500">
                   <X size={20} />
                 </button>
               </div>
@@ -179,7 +179,7 @@ export function MediaPicker({ name, initialUrl, label = "Ảnh" }: Props) {
 
             <div className="border-t border-neutral-200 p-4 text-right">
               <button
-                type="button"
+                type="button" suppressHydrationWarning
                 onClick={() => setOpen(false)}
                 className="bg-neutral-200 px-5 py-2 text-sm font-medium uppercase tracking-wider text-navy-900 hover:bg-neutral-300"
               >
